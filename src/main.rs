@@ -8,7 +8,7 @@ extern crate serde_derive;
 extern crate url;
 
 use clap::{App, AppSettings, Arg, SubCommand};
-use reqwest::Client;
+use reqwest::{Client, StatusCode};
 use reqwest::header::UserAgent;
 use std::error::Error;
 use url::Url;
@@ -29,6 +29,11 @@ struct Project {
     name: String,
 }
 
+#[derive(Deserialize, Debug)]
+struct ErrorResponse {
+    message: String
+}
+
 fn project_list(server: &str, master_key: &str) -> Result<(), Box<Error>> {
     println!("Using Kotori endpoint: {}", server);
 
@@ -40,13 +45,28 @@ fn project_list(server: &str, master_key: &str) -> Result<(), Box<Error>> {
         .header(XMasterKey(master_key.to_owned()))
         .send()?;
 
-    let project_list: ProjectList = response.json()?;
+    match response.status() {
+        StatusCode::Ok => {
+            let project_list: ProjectList = response.json()?;
 
-    println!("Total count of projects: {}", project_list.count);
+            println!("Total count of projects: {}", project_list.count);
 
-    println!("ID\t\t\tPROJECT NAME");
-    for project in &project_list.projects {
-        println!("{}\t\t\t{}", project.id, project.name);
+            println!("ID\t\t\tPROJECT NAME");
+            for project in &project_list.projects {
+                println!("{}\t\t\t{}", project.id, project.name);
+            }
+        }
+
+        StatusCode::Unauthorized |
+        StatusCode::Forbidden |
+        StatusCode::InternalServerError => {
+            let error_response: ErrorResponse = response.json()?;
+            println!("Error: {}", error_response.message);
+        }
+
+        status_code => {
+            panic!("Unknown response: {:?}", status_code);
+        }
     }
 
     Ok(())
