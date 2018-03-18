@@ -1,0 +1,6 @@
+[package]
+name = "kotori-cli-rs"
+version = "0.1.0"
+authors = ["Martin Pešek <pesek.dev@gmail.com>"]
+
+[dependencies]
