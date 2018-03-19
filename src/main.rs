@@ -110,7 +110,7 @@ fn project_delete(project_id: &str, server: &str, master_key: &str) -> Result<()
     return handle_response(&mut response, &project_delete_handle_response);
 }
 
-fn project_delete_handle_response(response: &mut reqwest::Response) -> Result<(), Box<Error>> {
+fn project_delete_handle_response(_response: &mut reqwest::Response) -> Result<(), Box<Error>> {
     println!("Project deleted.");
     Ok(())
 }
@@ -141,14 +141,14 @@ fn handle_response(response: &mut reqwest::Response, f: &Fn(&mut reqwest::Respon
 
 fn dispatch(matches: &clap::ArgMatches) -> Result<(), Box<Error>> {
     match matches.subcommand() {
-        ("projects", Some(projects_matches)) => {
-            let server = projects_matches.value_of("SERVER").unwrap();
-            let master_key = projects_matches.value_of("master-key").unwrap();
-
-            return project_list(server, master_key);
-        }
-
         ("project", Some(project_matches)) => {
+            if let Some(matches) = project_matches.subcommand_matches("list") {
+                let server = matches.value_of("SERVER").unwrap();
+                let master_key = matches.value_of("master-key").unwrap();
+
+                return project_list(server, master_key);
+            }
+
             if let Some(matches) = project_matches.subcommand_matches("create") {
                 let name = matches.value_of("NAME").unwrap();
                 let server = matches.value_of("SERVER").unwrap();
@@ -176,20 +176,20 @@ fn main() {
     let matches = App::new("Kotori CLI")
         .settings(&[AppSettings::SubcommandRequiredElseHelp, AppSettings::VersionlessSubcommands])
         .version("0.1.0")
-        .subcommand(SubCommand::with_name("projects")
-            .about("Show list of projects")
-            .arg(Arg::with_name("master-key")
-                .help("Sets master key")
-                .long("master-key")
-                .required(true)
-                .value_name("key")
-                .takes_value(true))
-            .arg(Arg::with_name("SERVER")
-                .help("Kotori server endpoint")
-                .required(true)))
         .subcommand(SubCommand::with_name("project")
             .setting(AppSettings::SubcommandRequiredElseHelp)
             .about("Manage projects")
+            .subcommand(SubCommand::with_name("list")
+                .about("Show list of projects")
+                .arg(Arg::with_name("master-key")
+                    .help("Sets master key")
+                    .long("master-key")
+                    .required(true)
+                    .value_name("key")
+                    .takes_value(true))
+                .arg(Arg::with_name("SERVER")
+                    .help("Kotori server endpoint")
+                    .required(true)))
             .subcommand(SubCommand::with_name("create")
                 .about("Create a new project")
                 .arg(Arg::with_name("master-key")
