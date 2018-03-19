@@ -2,6 +2,9 @@
 name = "kotori-cli-rs"
 version = "0.1.0"
 authors = ["Martin Pešek <pesek.dev@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/kotorihq/kotori-cli-rs"
 
 [dependencies]
 clap = "2.31.1"
