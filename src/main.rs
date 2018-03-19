@@ -83,12 +83,34 @@ fn project_create(name: &str, server: &str, master_key: &str) -> Result<(), Box<
         .json(&params)
         .send()?;
 
-    return handle_response(&mut response, &project_create_handle_response);
+    return handle_response(&mut response, &project_create_upsert_handle_response);
 }
 
-fn project_create_handle_response(response: &mut reqwest::Response) -> Result<(), Box<Error>> {
-    let project_create: ProjectCreate = response.json()?;
-    println!("Project created with ID: {}", project_create.id);
+fn project_upsert(name: &str, server: &str, master_key: &str, id: &str) -> Result<(), Box<Error>> {
+    println!("Using Kotori endpoint: {}", server);
+
+    let url = Url::parse(server)?.join("/api/projects/")?.join(id)?;
+
+    let mut params = HashMap::new();
+    params.insert("name", name);
+
+    let mut response = Client::new()
+        .put(url)
+        .header(UserAgent::new("kotori-cli"))
+        .header(XMasterKey(master_key.to_owned()))
+        .json(&params)
+        .send()?;
+
+    return handle_response(&mut response, &project_create_upsert_handle_response);
+}
+
+fn project_create_upsert_handle_response(response: &mut reqwest::Response) -> Result<(), Box<Error>> {
+    if response.status() == StatusCode::Ok {
+        println!("Project updated.");
+    } else if response.status() == StatusCode::Created {
+        let project_create: ProjectCreate = response.json()?;
+        println!("Project created with ID: {}", project_create.id);
+    }
 
     Ok(())
 }
@@ -151,7 +173,16 @@ fn dispatch(matches: &clap::ArgMatches) -> Result<(), Box<Error>> {
 
             if let Some(matches) = project_matches.subcommand_matches("create") {
                 let name = matches.value_of("NAME").unwrap();
-                return project_create(name, server, master_key);
+
+                match matches.value_of("with-id") {
+                    None => {
+                        return project_create(name, server, master_key);
+                    }
+
+                    Some(id) => {
+                        return project_upsert(name, server, master_key, id);
+                    }
+                }
             }
 
             if let Some(matches) = project_matches.subcommand_matches("delete") {
@@ -183,19 +214,24 @@ fn main() {
                 .help("Kotori server endpoint")
                 .required(true))
             .subcommand(SubCommand::with_name("list")
-                .about("Show list of projects")
-                .subcommand(SubCommand::with_name("create")
-                    .about("Create a new project")
-                    .arg(Arg::with_name("NAME")
-                        .help("Project name")
-                        .required(true)
-                        .index(2))))
+                .about("Show list of projects"))
+            .subcommand(SubCommand::with_name("create")
+                .about("Create a new project")
+                .arg(Arg::with_name("NAME")
+                    .help("Project name")
+                    .required(true))
+                .arg(Arg::with_name("with-id")
+                    .help("Sets project ID\nIf project with given ID already exists,\nupdate it instead")
+//                    .next_line_help(true)
+                    .long("with-id")
+                    .required(false)
+                    .value_name("id")
+                    .takes_value(true)))
             .subcommand(SubCommand::with_name("delete")
                 .about("Delete a project")
                 .arg(Arg::with_name("PROJECT ID")
                     .help("Project ID")
-                    .required(true)
-                    .index(2))))
+                    .required(true))))
         .get_matches();
 
     match dispatch(&matches) {
