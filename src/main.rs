@@ -148,7 +148,8 @@ fn handle_response(response: &mut reqwest::Response, f: &Fn(&mut reqwest::Respon
         StatusCode::Unauthorized |
         StatusCode::Forbidden |
         StatusCode::NotFound |
-        StatusCode::InternalServerError => {
+        StatusCode::InternalServerError |
+        StatusCode::BadRequest => {
             let error_response: ErrorResponse = response.json()?;
             println!("Error: {}", error_response.message);
         }
@@ -222,7 +223,6 @@ fn main() {
                     .required(true))
                 .arg(Arg::with_name("with-id")
                     .help("Sets project ID\nIf project with given ID already exists,\nupdate it instead")
-//                    .next_line_help(true)
                     .long("with-id")
                     .required(false)
                     .value_name("id")
