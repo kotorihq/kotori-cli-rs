@@ -45,16 +45,26 @@ fn project_list(server: &str, master_key: &str) -> Result<(), Box<Error>> {
         .header(XMasterKey(master_key.to_owned()))
         .send()?;
 
+    return handle_response(&mut response, &project_list_handle_response);
+}
+
+fn project_list_handle_response(response: &mut reqwest::Response) -> Result<(), Box<Error>> {
+    let project_list: ProjectList = response.json()?;
+
+    println!("Total count of projects: {}", project_list.count);
+
+    println!("ID\t\t\tPROJECT NAME");
+    for project in &project_list.projects {
+        println!("{}\t\t\t{}", project.id, project.name);
+    }
+
+    Ok(())
+}
+
+fn handle_response(response: &mut reqwest::Response, f: &Fn(&mut reqwest::Response) -> Result<(), Box<Error>>) -> Result<(), Box<Error>> {
     match response.status() {
         StatusCode::Ok => {
-            let project_list: ProjectList = response.json()?;
-
-            println!("Total count of projects: {}", project_list.count);
-
-            println!("ID\t\t\tPROJECT NAME");
-            for project in &project_list.projects {
-                println!("{}\t\t\t{}", project.id, project.name);
-            }
+            return f(response);
         }
 
         StatusCode::Unauthorized |
