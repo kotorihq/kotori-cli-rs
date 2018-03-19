@@ -142,26 +142,20 @@ fn handle_response(response: &mut reqwest::Response, f: &Fn(&mut reqwest::Respon
 fn dispatch(matches: &clap::ArgMatches) -> Result<(), Box<Error>> {
     match matches.subcommand() {
         ("project", Some(project_matches)) => {
-            if let Some(matches) = project_matches.subcommand_matches("list") {
-                let server = matches.value_of("SERVER").unwrap();
-                let master_key = matches.value_of("master-key").unwrap();
+            let server = project_matches.value_of("SERVER").unwrap();
+            let master_key = project_matches.value_of("master-key").unwrap();
 
+            if let Some(_) = project_matches.subcommand_matches("list") {
                 return project_list(server, master_key);
             }
 
             if let Some(matches) = project_matches.subcommand_matches("create") {
                 let name = matches.value_of("NAME").unwrap();
-                let server = matches.value_of("SERVER").unwrap();
-                let master_key = matches.value_of("master-key").unwrap();
-
                 return project_create(name, server, master_key);
             }
 
             if let Some(matches) = project_matches.subcommand_matches("delete") {
                 let project_id = matches.value_of("PROJECT ID").unwrap();
-                let server = matches.value_of("SERVER").unwrap();
-                let master_key = matches.value_of("master-key").unwrap();
-
                 return project_delete(project_id, server, master_key);
             }
 
@@ -179,45 +173,25 @@ fn main() {
         .subcommand(SubCommand::with_name("project")
             .setting(AppSettings::SubcommandRequiredElseHelp)
             .about("Manage projects")
+            .arg(Arg::with_name("master-key")
+                .help("Sets master key")
+                .long("master-key")
+                .required(true)
+                .value_name("key")
+                .takes_value(true))
+            .arg(Arg::with_name("SERVER")
+                .help("Kotori server endpoint")
+                .required(true))
             .subcommand(SubCommand::with_name("list")
                 .about("Show list of projects")
-                .arg(Arg::with_name("master-key")
-                    .help("Sets master key")
-                    .long("master-key")
-                    .required(true)
-                    .value_name("key")
-                    .takes_value(true))
-                .arg(Arg::with_name("SERVER")
-                    .help("Kotori server endpoint")
-                    .required(true)))
-            .subcommand(SubCommand::with_name("create")
-                .about("Create a new project")
-                .arg(Arg::with_name("master-key")
-                    .help("Sets master key")
-                    .long("master-key")
-                    .required(true)
-                    .value_name("key")
-                    .takes_value(true))
-                .arg(Arg::with_name("SERVER")
-                    .help("Kotori server endpoint")
-                    .required(true)
-                    .index(1))
-                .arg(Arg::with_name("NAME")
-                    .help("Project name")
-                    .required(true)
-                    .index(2)))
+                .subcommand(SubCommand::with_name("create")
+                    .about("Create a new project")
+                    .arg(Arg::with_name("NAME")
+                        .help("Project name")
+                        .required(true)
+                        .index(2))))
             .subcommand(SubCommand::with_name("delete")
                 .about("Delete a project")
-                .arg(Arg::with_name("master-key")
-                    .help("Sets master key")
-                    .long("master-key")
-                    .required(true)
-                    .value_name("key")
-                    .takes_value(true))
-                .arg(Arg::with_name("SERVER")
-                    .help("Kotori server endpoint")
-                    .required(true)
-                    .index(1))
                 .arg(Arg::with_name("PROJECT ID")
                     .help("Project ID")
                     .required(true)
