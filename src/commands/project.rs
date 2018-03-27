@@ -38,7 +38,7 @@ pub fn exec(args: &ArgMatches) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn subcmd_list() -> Vec<App<'static, 'static>> {
+fn subcmd_list() -> Vec<App<'static, 'static>> {
     vec![
         project_list::cli(),
         project_create_upsert::cli(),
