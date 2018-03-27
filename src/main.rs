@@ -8,6 +8,7 @@ extern crate serde;
 extern crate serde_derive;
 extern crate url;
 
+mod config;
 mod cli;
 mod commands;
 

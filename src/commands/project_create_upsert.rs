@@ -1,5 +1,6 @@
 use clap::{App, Arg, ArgMatches, SubCommand};
 use commands::command_base::ErrorResponse;
+use config::Config;
 use failure::Error;
 use reqwest::{Client, Response, StatusCode};
 use reqwest::header::UserAgent;
@@ -28,7 +29,7 @@ pub fn cli() -> App<'static, 'static> {
             .takes_value(true))
 }
 
-pub fn exec(args: &ArgMatches, server: &str, master_key: &str) -> Result<(), Error> {
+pub fn exec(config: &Config, args: &ArgMatches) -> Result<(), Error> {
     let name = args.value_of("NAME").unwrap();
     let mut params = HashMap::new();
     params.insert("name", name);
@@ -36,18 +37,18 @@ pub fn exec(args: &ArgMatches, server: &str, master_key: &str) -> Result<(), Err
     let mut response = match args.value_of("with-id") {
         None => {
             Client::new()
-                .post(Url::parse(server)?.join("/api/projects")?)
+                .post(Url::parse(&config.server_url)?.join("/api/projects")?)
                 .header(UserAgent::new("kotori-cli"))
-                .header(XMasterKey(master_key.to_owned()))
+                .header(XMasterKey(config.master_key.to_owned()))
                 .json(&params)
                 .send()?
         }
 
         Some(id) => {
             Client::new()
-                .put(Url::parse(server)?.join("/api/projects/")?.join(id)?)
+                .put(Url::parse(&config.server_url)?.join("/api/projects/")?.join(id)?)
                 .header(UserAgent::new("kotori-cli"))
-                .header(XMasterKey(master_key.to_owned()))
+                .header(XMasterKey(config.master_key.to_owned()))
                 .json(&params)
                 .send()?
         }

@@ -1,5 +1,6 @@
 use clap::{App, Arg, ArgMatches, SubCommand};
 use commands::command_base::ErrorResponse;
+use config::Config;
 use failure::Error;
 use reqwest::{Client, Response, StatusCode};
 use reqwest::header::UserAgent;
@@ -16,10 +17,10 @@ pub fn cli() -> App<'static, 'static> {
             .required(true))
 }
 
-pub fn exec(args: &ArgMatches, server: &str, master_key: &str) -> Result<(), Error> {
+pub fn exec(config: &Config, args: &ArgMatches) -> Result<(), Error> {
     let project_id = args.value_of("PROJECT ID").unwrap();
 
-    let url = Url::parse(server)?.join("/api/projects/")?.join(project_id)?;
+    let url = Url::parse(&config.server_url)?.join("/api/projects/")?.join(project_id)?;
 
     let mut params = HashMap::new();
     params.insert("name", project_id);
@@ -27,7 +28,7 @@ pub fn exec(args: &ArgMatches, server: &str, master_key: &str) -> Result<(), Err
     let mut response = Client::new()
         .delete(url)
         .header(UserAgent::new("kotori-cli"))
-        .header(XMasterKey(master_key.to_owned()))
+        .header(XMasterKey(config.master_key.to_owned()))
         .send()?;
 
     return handle_response(&mut response, &project_delete_handle_response);

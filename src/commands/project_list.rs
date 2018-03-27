@@ -1,5 +1,6 @@
 use clap::{App, ArgMatches, SubCommand};
 use commands::command_base::ErrorResponse;
+use config::Config;
 use failure::Error;
 use reqwest::{Client, Response, StatusCode};
 use reqwest::header::UserAgent;
@@ -26,13 +27,13 @@ pub fn cli() -> App<'static, 'static> {
         .about("Show list of projects")
 }
 
-pub fn exec(_args: &ArgMatches, server: &str, master_key: &str) -> Result<(), Error> {
-    let url = Url::parse(server)?.join("/api/projects")?;
+pub fn exec(config: &Config, _args: &ArgMatches) -> Result<(), Error> {
+    let url = Url::parse(&config.server_url)?.join("/api/projects")?;
 
     let mut response = Client::new()
         .get(url)
         .header(UserAgent::new("kotori-cli"))
-        .header(XMasterKey(master_key.to_owned()))
+        .header(XMasterKey(config.master_key.to_owned()))
         .send()?;
 
     return handle_response(&mut response, &project_list_handle_response);
