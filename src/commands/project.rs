@@ -1,5 +1,3 @@
-extern crate clap;
-
 use clap::{App, AppSettings, Arg, ArgMatches, SubCommand};
 use commands::{project_create_upsert, project_delete, project_list};
 use failure::Error;
