@@ -1,6 +1,6 @@
 use clap::App;
 use clap::ArgMatches;
-use std::error::Error;
+use failure::Error;
 
 mod command_base;
 
@@ -15,7 +15,7 @@ pub fn cmd_list() -> Vec<App<'static, 'static>> {
     ]
 }
 
-pub fn cmd_exec(cmd: &str) -> Option<fn(&ArgMatches) -> Result<(), Box<Error>>> {
+pub fn cmd_exec(cmd: &str) -> Option<fn(&ArgMatches) -> Result<(), Error>> {
     let f = match cmd {
         "project" => project::exec,
         _ => {

@@ -6,7 +6,7 @@ use clap::{App, ArgMatches, SubCommand};
 use commands::command_base::ErrorResponse;
 use reqwest::{Client, StatusCode};
 use reqwest::header::UserAgent;
-use std::error::Error;
+use failure::Error;
 use url::Url;
 
 header! { (XMasterKey, "x-master-key") => [String] }
@@ -30,7 +30,7 @@ pub fn cli() -> App<'static, 'static> {
         .about("Show list of projects")
 }
 
-pub fn exec(_args: &ArgMatches, server: &str, master_key: &str) -> Result<(), Box<Error>> {
+pub fn exec(_args: &ArgMatches, server: &str, master_key: &str) -> Result<(), Error> {
     let url = Url::parse(server)?.join("/api/projects")?;
 
     let mut response = Client::new()
@@ -42,7 +42,7 @@ pub fn exec(_args: &ArgMatches, server: &str, master_key: &str) -> Result<(), Bo
     return handle_response(&mut response, &project_list_handle_response);
 }
 
-fn project_list_handle_response(response: &mut reqwest::Response) -> Result<(), Box<Error>> {
+fn project_list_handle_response(response: &mut reqwest::Response) -> Result<(), Error> {
     let project_list: ProjectList = response.json()?;
 
     println!("Total count of projects: {}", project_list.count);
@@ -55,7 +55,7 @@ fn project_list_handle_response(response: &mut reqwest::Response) -> Result<(), 
     Ok(())
 }
 
-fn handle_response(response: &mut reqwest::Response, f: &Fn(&mut reqwest::Response) -> Result<(), Box<Error>>) -> Result<(), Box<Error>> {
+fn handle_response(response: &mut reqwest::Response, f: &Fn(&mut reqwest::Response) -> Result<(), Error>) -> Result<(), Error> {
     match response.status() {
         StatusCode::Ok |
         StatusCode::Created |

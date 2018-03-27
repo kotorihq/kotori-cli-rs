@@ -7,7 +7,7 @@ use commands::command_base::ErrorResponse;
 use reqwest::{Client, StatusCode};
 use reqwest::header::UserAgent;
 use std::collections::HashMap;
-use std::error::Error;
+use failure::Error;
 use url::Url;
 
 header! { (XMasterKey, "x-master-key") => [String] }
@@ -32,7 +32,7 @@ pub fn cli() -> App<'static, 'static> {
             .takes_value(true))
 }
 
-pub fn exec(args: &ArgMatches, server: &str, master_key: &str) -> Result<(), Box<Error>> {
+pub fn exec(args: &ArgMatches, server: &str, master_key: &str) -> Result<(), Error> {
     let name = args.value_of("NAME").unwrap();
     let mut params = HashMap::new();
     params.insert("name", name);
@@ -60,7 +60,7 @@ pub fn exec(args: &ArgMatches, server: &str, master_key: &str) -> Result<(), Box
     return handle_response(&mut response, &project_create_upsert_handle_response);
 }
 
-fn project_create_upsert_handle_response(response: &mut reqwest::Response) -> Result<(), Box<Error>> {
+fn project_create_upsert_handle_response(response: &mut reqwest::Response) -> Result<(), Error> {
     if response.status() == StatusCode::Ok {
         println!("Project updated.");
     } else if response.status() == StatusCode::Created {
@@ -71,7 +71,7 @@ fn project_create_upsert_handle_response(response: &mut reqwest::Response) -> Re
     Ok(())
 }
 
-fn handle_response(response: &mut reqwest::Response, f: &Fn(&mut reqwest::Response) -> Result<(), Box<Error>>) -> Result<(), Box<Error>> {
+fn handle_response(response: &mut reqwest::Response, f: &Fn(&mut reqwest::Response) -> Result<(), Error>) -> Result<(), Error> {
     match response.status() {
         StatusCode::Ok |
         StatusCode::Created |

@@ -6,6 +6,7 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate url;
+extern crate failure;
 
 mod cli;
 mod commands;

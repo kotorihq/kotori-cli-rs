@@ -2,7 +2,7 @@ extern crate clap;
 
 use clap::{App, AppSettings, Arg, ArgMatches, SubCommand};
 use commands::{project_create_upsert, project_delete, project_list};
-use std::error::Error;
+use failure::Error;
 
 pub fn cli() -> App<'static, 'static> {
     SubCommand::with_name("project")
@@ -20,7 +20,7 @@ pub fn cli() -> App<'static, 'static> {
         .subcommands(subcmd_list())
 }
 
-pub fn exec(args: &ArgMatches) -> Result<(), Box<Error>> {
+pub fn exec(args: &ArgMatches) -> Result<(), Error> {
     let server = args.value_of("SERVER").unwrap();
     let master_key = args.value_of("master-key").unwrap();
 
@@ -46,7 +46,7 @@ pub fn subcmd_list() -> Vec<App<'static, 'static>> {
     ]
 }
 
-fn subcmd_exec(subcmd: &str) -> Option<fn(&ArgMatches, &str, &str) -> Result<(), Box<Error>>> {
+fn subcmd_exec(subcmd: &str) -> Option<fn(&ArgMatches, &str, &str) -> Result<(), Error>> {
     let f = match subcmd {
         "list" => project_list::exec,
         "create" => project_create_upsert::exec,

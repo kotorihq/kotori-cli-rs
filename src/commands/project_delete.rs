@@ -7,7 +7,7 @@ use commands::command_base::ErrorResponse;
 use reqwest::{Client, StatusCode};
 use reqwest::header::UserAgent;
 use std::collections::HashMap;
-use std::error::Error;
+use failure::Error;
 use url::Url;
 
 header! { (XMasterKey, "x-master-key") => [String] }
@@ -20,7 +20,7 @@ pub fn cli() -> App<'static, 'static> {
             .required(true))
 }
 
-pub fn exec(args: &ArgMatches, server: &str, master_key: &str) -> Result<(), Box<Error>> {
+pub fn exec(args: &ArgMatches, server: &str, master_key: &str) -> Result<(), Error> {
     let project_id = args.value_of("PROJECT ID").unwrap();
 
     let url = Url::parse(server)?.join("/api/projects/")?.join(project_id)?;
@@ -37,12 +37,12 @@ pub fn exec(args: &ArgMatches, server: &str, master_key: &str) -> Result<(), Box
     return handle_response(&mut response, &project_delete_handle_response);
 }
 
-fn project_delete_handle_response(_response: &mut reqwest::Response) -> Result<(), Box<Error>> {
+fn project_delete_handle_response(_response: &mut reqwest::Response) -> Result<(), Error> {
     println!("Project deleted.");
     Ok(())
 }
 
-fn handle_response(response: &mut reqwest::Response, f: &Fn(&mut reqwest::Response) -> Result<(), Box<Error>>) -> Result<(), Box<Error>> {
+fn handle_response(response: &mut reqwest::Response, f: &Fn(&mut reqwest::Response) -> Result<(), Error>) -> Result<(), Error> {
     match response.status() {
         StatusCode::Ok |
         StatusCode::Created |

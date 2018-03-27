@@ -1,11 +1,11 @@
 extern crate clap;
 
 use clap::{App, AppSettings};
-use std::error::Error;
+use failure::Error;
 
 use super::commands;
 
-pub fn main() -> Result<(), Box<Error>> {
+pub fn main() -> Result<(), Error> {
     let args = cli().get_matches();
 
     let (cmd, args) = match args.subcommand() {
