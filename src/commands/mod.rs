@@ -17,8 +17,8 @@ pub mod key_list;
 
 pub fn cmd_list() -> Vec<App<'static, 'static>> {
     vec![
-        ProjectGroupCommand::group_cmd_cli(),
-        KeyGroupCommand::group_cmd_cli(),
+        ProjectGroupCommand::group_cli(),
+        KeyGroupCommand::group_cli(),
     ]
 }
 

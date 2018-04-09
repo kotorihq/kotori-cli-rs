@@ -7,14 +7,14 @@ use failure::Error;
 pub struct ProjectGroupCommand;
 
 impl KotoriGroupCommand for ProjectGroupCommand {
-    fn group_cmd_cli() -> App<'static, 'static> {
+    fn group_cli() -> App<'static, 'static> {
         SubCommand::with_name("project")
             .setting(AppSettings::SubcommandRequiredElseHelp)
             .about("Manage projects")
-            .subcommands(Self::cmd_cli())
+            .subcommands(Self::cli())
     }
 
-    fn cmd_cli() -> Vec<App<'static, 'static>> {
+    fn cli() -> Vec<App<'static, 'static>> {
         vec![
             project_list::cli(),
             project_create_upsert::cli(),
