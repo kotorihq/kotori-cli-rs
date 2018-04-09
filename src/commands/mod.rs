@@ -1,9 +1,11 @@
 use clap::App;
-use clap::ArgMatches;
-use config::Config;
-use failure::Error;
+use commands::key::KeyGroupCommand;
+use commands::kotori_group_command::KotoriGroupCommand;
+use commands::project::ProjectGroupCommand;
 
 mod command_base;
+
+pub mod kotori_group_command;
 
 pub mod project;
 pub mod project_list;
@@ -15,15 +17,15 @@ pub mod key_list;
 
 pub fn cmd_list() -> Vec<App<'static, 'static>> {
     vec![
-        project::cli(),
-        key::cli(),
+        ProjectGroupCommand::group_cmd_cli(),
+        KeyGroupCommand::group_cmd_cli(),
     ]
 }
 
-pub fn cmd_exec(cmd: &str) -> Option<fn(&Config, &ArgMatches) -> Result<(), Error>> {
-    let f = match cmd {
-        "project" => project::exec,
-        "key" => key::exec,
+pub fn cmd_exec(cmd: &str) -> Option<Box<KotoriGroupCommand>> {
+    let f: Box<KotoriGroupCommand> = match cmd {
+        "project" => Box::new(ProjectGroupCommand {}),
+        "key" => Box::new(KeyGroupCommand {}),
         _ => {
             return None;
         }

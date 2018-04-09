@@ -2,43 +2,32 @@ use clap::{App, AppSettings, ArgMatches, SubCommand};
 use commands::key_list;
 use config::Config;
 use failure::Error;
+use commands::kotori_group_command::KotoriGroupCommand;
 
-pub fn cli() -> App<'static, 'static> {
-    SubCommand::with_name("key")
-        .setting(AppSettings::SubcommandRequiredElseHelp)
-        .about("Manage keys")
-        .subcommands(subcmd_list())
-}
+pub struct KeyGroupCommand;
 
-pub fn exec(config: &Config, args: &ArgMatches) -> Result<(), Error> {
-    let (cmd, args) = match args.subcommand() {
-        (cmd, Some(args)) => (cmd, args),
-        _ => {
-            return Ok(());
-        }
-    };
-
-    if let Some(exec) = subcmd_exec(cmd) {
-        return exec(config, args);
+impl KotoriGroupCommand for KeyGroupCommand {
+    fn group_cmd_cli() -> App<'static, 'static> {
+        SubCommand::with_name("key")
+            .setting(AppSettings::SubcommandRequiredElseHelp)
+            .about("Manage keys")
+            .subcommands(Self::cmd_cli())
     }
 
-    Ok(())
-}
+    fn cmd_cli() -> Vec<App<'static, 'static>> {
+        vec![
+            key_list::cli(),
+        ]
+    }
 
-fn subcmd_list() -> Vec<App<'static, 'static>> {
-    vec![
-        key_list::cli(),
-    ]
-}
+    fn cmd_exec(&self, subcmd: &str) -> Option<fn(&Config, &ArgMatches) -> Result<(), Error>> {
+        let f = match subcmd {
+            "list" => key_list::exec,
+            _ => {
+                return None;
+            }
+        };
 
-fn subcmd_exec(subcmd: &str) -> Option<fn(&Config, &ArgMatches) -> Result<(), Error>> {
-    let f = match subcmd {
-        "list" => key_list::exec,
-        _ => {
-            return None;
-        }
-    };
-
-
-    Some(f)
+        Some(f)
+    }
 }

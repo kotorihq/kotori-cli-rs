@@ -17,8 +17,8 @@ pub fn main() -> Result<(), Error> {
         }
     };
 
-    if let Some(exec) = commands::cmd_exec(cmd) {
-        return exec(&config, args);
+    if let Some(group_cmd) = commands::cmd_exec(cmd) {
+        return group_cmd.group_exec(&config, args);
     }
 
     Ok(())
