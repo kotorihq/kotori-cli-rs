@@ -1,13 +1,10 @@
 use clap::{App, Arg, ArgMatches, SubCommand};
-use commands::command_base::ErrorResponse;
 use config::Config;
 use failure::Error;
-use reqwest::{Client, Response, StatusCode};
-use reqwest::header::UserAgent;
+use hyper::Method;
+use reqwest::{Response, StatusCode};
 use std::collections::HashMap;
 use url::Url;
-
-header! { (XMasterKey, "x-master-key") => [String] }
 
 #[derive(Deserialize, Debug)]
 struct ProjectCreate {
@@ -30,59 +27,36 @@ pub fn cli() -> App<'static, 'static> {
 }
 
 pub fn exec(config: &Config, args: &ArgMatches) -> Result<(), Error> {
-    let name = args.value_of("NAME").unwrap();
     let mut params = HashMap::new();
-    params.insert("name", name);
+    params.insert("name", args.value_of("NAME").unwrap());
 
-    let mut response = match args.value_of("with-id") {
+    let (url, method) = match args.value_of("with-id") {
         None => {
-            Client::new()
-                .post(Url::parse(&config.server_url)?.join("/api/projects")?)
-                .header(UserAgent::new("kotori-cli"))
-                .header(XMasterKey(config.master_key.to_owned()))
-                .json(&params)
-                .send()?
+            let url = Url::parse(&config.server_url)?.join("/api/projects")?;
+            let method = Method::Post;
+            (url, method)
         }
 
         Some(id) => {
-            Client::new()
-                .put(Url::parse(&config.server_url)?.join("/api/projects/")?.join(id)?)
-                .header(UserAgent::new("kotori-cli"))
-                .header(XMasterKey(config.master_key.to_owned()))
-                .json(&params)
-                .send()?
+            let url = Url::parse(&config.server_url)?.join("/api/projects/")?.join(id)?;
+            let method = Method::Put;
+            (url, method)
         }
     };
 
-    return handle_response(&mut response, &project_create_upsert_handle_response);
+    return super::command_base::do_request(config, method, &url, Some(&params),
+                                           &handle_success_response, None);
 }
 
-fn project_create_upsert_handle_response(response: &mut Response) -> Result<(), Error> {
-    if response.status() == StatusCode::Ok {
-        println!("Project updated.");
-    } else if response.status() == StatusCode::Created {
-        let project_create: ProjectCreate = response.json()?;
-        println!("Project created with ID: {}", project_create.id);
-    }
-
-    Ok(())
-}
-
-fn handle_response(response: &mut Response, f: &Fn(&mut Response) -> Result<(), Error>) -> Result<(), Error> {
+fn handle_success_response(response: &mut Response) -> Result<(), Error> {
     match response.status() {
-        StatusCode::Ok |
-        StatusCode::Created |
-        StatusCode::NoContent => {
-            return f(response);
+        StatusCode::Ok => {
+            println!("Project updated.");
         }
 
-        StatusCode::Unauthorized |
-        StatusCode::Forbidden |
-        StatusCode::NotFound |
-        StatusCode::InternalServerError |
-        StatusCode::BadRequest => {
-            let error_response: ErrorResponse = response.json()?;
-            println!("Error: {}", error_response.message);
+        StatusCode::Created => {
+            let project_create: ProjectCreate = response.json()?;
+            println!("Project created with ID: {}", project_create.id);
         }
 
         status_code => {

@@ -1,12 +1,9 @@
 use clap::{App, ArgMatches, SubCommand};
-use commands::command_base::ErrorResponse;
 use config::Config;
 use failure::Error;
-use reqwest::{Client, Response, StatusCode};
-use reqwest::header::UserAgent;
+use hyper::Method;
+use reqwest::Response;
 use url::Url;
-
-header! { (XMasterKey, "x-master-key") => [String] }
 
 #[derive(Deserialize, Debug)]
 struct ProjectList {
@@ -30,16 +27,11 @@ pub fn cli() -> App<'static, 'static> {
 pub fn exec(config: &Config, _args: &ArgMatches) -> Result<(), Error> {
     let url = Url::parse(&config.server_url)?.join("/api/projects")?;
 
-    let mut response = Client::new()
-        .get(url)
-        .header(UserAgent::new("kotori-cli"))
-        .header(XMasterKey(config.master_key.to_owned()))
-        .send()?;
-
-    return handle_response(&mut response, &project_list_handle_response);
+    return super::command_base::do_request(config, Method::Get, &url, None,
+                                           &handle_success_response, None);
 }
 
-fn project_list_handle_response(response: &mut Response) -> Result<(), Error> {
+fn handle_success_response(response: &mut Response) -> Result<(), Error> {
     let project_list: ProjectList = response.json()?;
 
     println!("Total count of projects: {}", project_list.count);
@@ -47,31 +39,6 @@ fn project_list_handle_response(response: &mut Response) -> Result<(), Error> {
     println!("{:<25}{}", "ID", "PROJECT NAME");
     for project in &project_list.projects {
         println!("{:<25}{}", project.id, project.name);
-    }
-
-    Ok(())
-}
-
-fn handle_response(response: &mut Response, f: &Fn(&mut Response) -> Result<(), Error>) -> Result<(), Error> {
-    match response.status() {
-        StatusCode::Ok |
-        StatusCode::Created |
-        StatusCode::NoContent => {
-            return f(response);
-        }
-
-        StatusCode::Unauthorized |
-        StatusCode::Forbidden |
-        StatusCode::NotFound |
-        StatusCode::InternalServerError |
-        StatusCode::BadRequest => {
-            let error_response: ErrorResponse = response.json()?;
-            println!("Error: {}", error_response.message);
-        }
-
-        status_code => {
-            panic!("Unknown response: {:?}", status_code);
-        }
     }
 
     Ok(())
