@@ -1,8 +1,9 @@
 use clap::{App, AppSettings, ArgMatches, SubCommand};
-use commands::key_list;
+use commands::kotori_command::KotoriCommand;
+use commands::key_list::KeyListCommand;
+use commands::kotori_group_command::KotoriGroupCommand;
 use config::Config;
 use failure::Error;
-use commands::kotori_group_command::KotoriGroupCommand;
 
 pub struct KeyGroupCommand;
 
@@ -16,13 +17,13 @@ impl KotoriGroupCommand for KeyGroupCommand {
 
     fn cli() -> Vec<App<'static, 'static>> {
         vec![
-            key_list::cli(),
+            KeyListCommand::cli(),
         ]
     }
 
     fn cmd_exec(&self, subcmd: &str) -> Option<fn(&Config, &ArgMatches) -> Result<(), Error>> {
         let f = match subcmd {
-            "list" => key_list::exec,
+            "list" => KeyListCommand::exec,
             _ => {
                 return None;
             }

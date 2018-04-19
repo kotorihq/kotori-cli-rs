@@ -1,6 +1,9 @@
 use clap::{App, AppSettings, ArgMatches, SubCommand};
-use commands::{project_create_upsert, project_delete, project_list};
+use commands::kotori_command::KotoriCommand;
 use commands::kotori_group_command::KotoriGroupCommand;
+use commands::project_create_upsert::ProjectCreateCommand;
+use commands::project_delete::ProjectDeleteCommand;
+use commands::project_list::ProjectListCommand;
 use config::Config;
 use failure::Error;
 
@@ -16,17 +19,17 @@ impl KotoriGroupCommand for ProjectGroupCommand {
 
     fn cli() -> Vec<App<'static, 'static>> {
         vec![
-            project_list::cli(),
-            project_create_upsert::cli(),
-            project_delete::cli(),
+            ProjectListCommand::cli(),
+            ProjectCreateCommand::cli(),
+            ProjectDeleteCommand::cli(),
         ]
     }
 
     fn cmd_exec(&self, subcmd: &str) -> Option<fn(&Config, &ArgMatches) -> Result<(), Error>> {
         let f = match subcmd {
-            "list" => project_list::exec,
-            "create" => project_create_upsert::exec,
-            "delete" => project_delete::exec,
+            "list" => ProjectListCommand::exec,
+            "create" => ProjectCreateCommand::exec,
+            "delete" => ProjectDeleteCommand::exec,
             _ => {
                 return None;
             }

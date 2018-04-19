@@ -6,6 +6,7 @@ use commands::project::ProjectGroupCommand;
 mod command_base;
 
 pub mod kotori_group_command;
+pub mod kotori_command;
 
 pub mod project;
 pub mod project_list;
