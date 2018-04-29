@@ -5,6 +5,7 @@ use commands::kotori_command::KotoriCommand;
 use commands::kotori_group_command::KotoriGroupCommand;
 use config::Config;
 use failure::Error;
+use commands::key_delete::KeyDeleteCommand;
 
 pub struct KeyGroupCommand;
 
@@ -20,6 +21,7 @@ impl KotoriGroupCommand for KeyGroupCommand {
         vec![
             KeyListCommand::cli(),
             KeyCreateCommand::cli(),
+            KeyDeleteCommand::cli(),
         ]
     }
 
@@ -27,6 +29,7 @@ impl KotoriGroupCommand for KeyGroupCommand {
         let f = match subcmd {
             "list" => KeyListCommand::exec,
             "create" => KeyCreateCommand::exec,
+            "delete" => KeyDeleteCommand::exec,
             _ => {
                 return None;
             }
