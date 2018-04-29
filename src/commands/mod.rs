@@ -15,7 +15,7 @@ pub mod project_delete;
 
 pub mod key;
 pub mod key_list;
-pub mod key_create;
+pub mod key_create_upsert;
 pub mod key_delete;
 
 pub fn cmd_list() -> Vec<App<'static, 'static>> {

@@ -1,5 +1,5 @@
 use clap::{App, AppSettings, ArgMatches, SubCommand};
-use commands::key_create::KeyCreateCommand;
+use commands::key_create_upsert::KeyCreateUpsertCommand;
 use commands::key_list::KeyListCommand;
 use commands::kotori_command::KotoriCommand;
 use commands::kotori_group_command::KotoriGroupCommand;
@@ -20,7 +20,7 @@ impl KotoriGroupCommand for KeyGroupCommand {
     fn cli() -> Vec<App<'static, 'static>> {
         vec![
             KeyListCommand::cli(),
-            KeyCreateCommand::cli(),
+            KeyCreateUpsertCommand::cli(),
             KeyDeleteCommand::cli(),
         ]
     }
@@ -28,7 +28,7 @@ impl KotoriGroupCommand for KeyGroupCommand {
     fn cmd_exec(&self, subcmd: &str) -> Option<fn(&Config, &ArgMatches) -> Result<(), Error>> {
         let f = match subcmd {
             "list" => KeyListCommand::exec,
-            "create" => KeyCreateCommand::exec,
+            "create" => KeyCreateUpsertCommand::exec,
             "delete" => KeyDeleteCommand::exec,
             _ => {
                 return None;
