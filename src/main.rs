@@ -8,6 +8,8 @@ extern crate serde;
 extern crate serde_derive;
 extern crate url;
 
+use std::process::exit;
+
 mod config;
 mod cli;
 mod commands;
@@ -15,6 +17,14 @@ mod commands;
 fn main() {
     match cli::main() {
         Ok(_) => {}
-        Err(e) => panic!("error: {:?}", e)
+
+        Err(e) => {
+            if cfg!(debug_assertions) {
+                panic!("error: {:?}", e)
+            } else {
+                eprintln!("error: {}", e);
+                exit(1)
+            }
+        }
     };
 }
