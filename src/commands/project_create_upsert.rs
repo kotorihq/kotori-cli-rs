@@ -5,7 +5,6 @@ use failure::Error;
 use hyper::Method;
 use reqwest::{Response, StatusCode};
 use std::collections::HashMap;
-use url::Url;
 
 #[derive(Deserialize, Debug)]
 struct ProjectCreate {
@@ -57,13 +56,13 @@ impl KotoriCommand for ProjectCreateCommand {
 
         let (url, method) = match args.value_of("with-id") {
             None => {
-                let url = Url::parse(&config.server_url)?.join("/api/projects")?;
+                let url = config.get_server_url()?.join("/api/projects")?;
                 let method = Method::Post;
                 (url, method)
             }
 
             Some(id) => {
-                let url = Url::parse(&config.server_url)?.join("/api/projects/")?.join(id)?;
+                let url = config.get_server_url()?.join("/api/projects/")?.join(id)?;
                 let method = Method::Put;
                 (url, method)
             }

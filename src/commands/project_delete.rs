@@ -4,7 +4,6 @@ use config::Config;
 use failure::Error;
 use hyper::Method;
 use reqwest::Response;
-use url::Url;
 
 pub struct ProjectDeleteCommand;
 
@@ -26,7 +25,7 @@ impl KotoriCommand for ProjectDeleteCommand {
 
     fn exec(config: &Config, args: &ArgMatches) -> Result<(), Error> {
         let project_id = args.value_of("PROJECT ID").unwrap();
-        let url = Url::parse(&config.server_url)?.join("/api/projects/")?.join(project_id)?;
+        let url = config.get_server_url()?.join("/api/projects/")?.join(project_id)?;
 
         return super::command_base::do_request(config, Method::Delete, &url, None,
                                                &ProjectDeleteCommand::handle_success_response, None);

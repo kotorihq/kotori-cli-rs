@@ -5,7 +5,6 @@ use failure::Error;
 use hyper::Method;
 use reqwest::{Response, StatusCode};
 use std::collections::HashMap;
-use url::Url;
 
 #[derive(Deserialize, Debug)]
 struct KeyCreate {
@@ -57,7 +56,6 @@ impl KotoriCommand for KeyCreateUpsertCommand {
 
     fn exec(config: &Config, args: &ArgMatches) -> Result<(), Error> {
         let project_id = args.value_of("PROJECT ID").unwrap();
-//        let url = Url::parse(&format!("{}/api/projects/{}/project-keys", &config.server_url, project_id))?;
 
         let is_readonly = args.is_present("readonly").to_string();
         let mut params = HashMap::new();
@@ -65,15 +63,13 @@ impl KotoriCommand for KeyCreateUpsertCommand {
 
         let (url, method) = match args.value_of("with-id") {
             None => {
-                let url = Url::parse(&format!("{}/api/projects/{}/project-keys",
-                                              &config.server_url, project_id))?;
+                let url = config.get_server_url()?.join(&format!("/api/projects/{}/project-keys", project_id))?;
                 let method = Method::Post;
                 (url, method)
             }
 
             Some(key_id) => {
-                let url = Url::parse(&format!("{}/api/projects/{}/project-keys/{}",
-                                              &config.server_url, project_id, key_id))?;
+                let url = config.get_server_url()?.join(&format!("/api/projects/{}/project-keys/{}", project_id, key_id))?;
                 let method = Method::Put;
                 (url, method)
             }

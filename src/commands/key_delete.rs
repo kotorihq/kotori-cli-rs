@@ -4,7 +4,6 @@ use config::Config;
 use failure::Error;
 use hyper::Method;
 use reqwest::Response;
-use url::Url;
 
 #[derive(Deserialize, Debug)]
 struct KeyCreate {
@@ -35,8 +34,7 @@ impl KotoriCommand for KeyDeleteCommand {
     fn exec(config: &Config, args: &ArgMatches) -> Result<(), Error> {
         let project_id = args.value_of("PROJECT ID").unwrap();
         let key_id = args.value_of("KEY ID").unwrap();
-        let url = Url::parse(&format!("{}/api/projects/{}/project-keys/{}",
-                                      &config.server_url, project_id, key_id))?;
+        let url = config.get_server_url()?.join(&format!("/api/projects/{}/project-keys/{}", project_id, key_id))?;
 
         return super::command_base::do_request(config, Method::Delete, &url, None,
                                                &KeyDeleteCommand::handle_success_response, None);

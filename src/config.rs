@@ -1,6 +1,10 @@
+use failure::Error;
+use url::ParseError;
+use url::Url;
+
 #[derive(Debug)]
 pub struct Config {
-    pub server_url: String,
+    server_url: String,
     pub master_key: String,
 }
 
@@ -11,4 +15,22 @@ impl Config {
             master_key: master_key.to_owned(),
         }
     }
+
+    pub fn get_server_url(&self) -> Result<Url, Error> {
+        match Url::parse(&self.server_url) {
+            Ok(url) => {
+                Ok(url)
+            }
+
+            Err(e) => {
+                if e == ParseError::RelativeUrlWithoutBase {
+                    let url = Url::parse(&format!("https://{}", &self.server_url))?;
+                    return Ok(url);
+                }
+
+                bail!(e)
+            }
+        }
+    }
 }
+

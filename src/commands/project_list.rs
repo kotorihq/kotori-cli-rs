@@ -4,7 +4,6 @@ use config::Config;
 use failure::Error;
 use hyper::Method;
 use reqwest::Response;
-use url::Url;
 
 #[derive(Deserialize, Debug)]
 struct ProjectList {
@@ -44,7 +43,7 @@ impl KotoriCommand for ProjectListCommand {
     }
 
     fn exec(config: &Config, _args: &ArgMatches) -> Result<(), Error> {
-        let url = Url::parse(&config.server_url)?.join("/api/projects")?;
+        let url = config.get_server_url()?.join("/api/projects")?;
 
         return super::command_base::do_request(config, Method::Get, &url, None,
                                                &ProjectListCommand::handle_success_response, None);
